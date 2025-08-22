@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.pyc
+
+# Env / Virtualenv
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Django
+*.log
+*.pot
+*.pyc
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+static/
+*.mo
+
+# PyCharm / IDEs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Docker
+*.env
+*.env.*
+docker-compose.override.yml
+*.swp
+*.DS_Store
+
+# Byte-compiled / distribution / packaging
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Coverage / testing
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Migrations (optional: ignore if you want versioned migrations)
+*/migrations/*.pyc
+*/migrations/__pycache__/
