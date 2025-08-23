@@ -23,3 +23,15 @@ class IsCourseOwner(permissions.BasePermission):
                 course=obj, teacher=request.user, role=CourseTeacher.Role.OWNER
             ).exists()
         )
+
+
+# this permission is used to give students access to course content (every teacher can give access to course content)
+class IsCourseTeacher(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return (
+            request.user.is_authenticated
+            and request.user.role == User.Role.TEACHER
+            and CourseTeacher.objects.filter(
+                course=obj.course, teacher=request.user
+            ).exists()
+        )

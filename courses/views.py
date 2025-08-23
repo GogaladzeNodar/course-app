@@ -12,7 +12,11 @@ from .serializers import (
     EnrollmentSerializer,
 )
 from common.Permissions.studentpermissions import IsStudent
-from common.Permissions.teacherpermissions import IsTeacher, IsCourseOwner
+from common.Permissions.teacherpermissions import (
+    IsTeacher,
+    IsCourseOwner,
+    IsCourseTeacher,
+)
 from django.db import IntegrityError
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.contrib.auth import get_user_model
@@ -171,4 +175,39 @@ class CourseViewSet(viewsets.ModelViewSet):
         course = self.get_object()
         students = course.enrollments.filter(is_active=True)
         serializer = EnrollmentSerializer(students, many=True)
+        return Response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="pending-enrollments",
+        permission_classes=[IsAuthenticated, IsCourseTeacher],
+    )
+    def pending_enrollments(self, request, pk=None):
+        course = self.get_object()
+        enrollments = course.enrollments.filter(status=Enrollment.Status.PENDING)
+        serializer = EnrollmentSerializer(enrollments, many=True)
+        return Response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=["patch"],
+        url_path="enrollments/(?P<enrollment_id>[^/.]+)",
+        permission_classes=[IsAuthenticated, IsCourseTeacher],
+    )
+    def update_enrollment_status(self, request, pk=None, enrollment_id=None):
+        course = self.get_object()
+        try:
+            enrollment = Enrollment.objects.get(id=enrollment_id, course=course)
+        except Enrollment.DoesNotExist:
+            return Response(
+                {"error": "Enrollment not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = EnrollmentUpdateSerializer(
+            enrollment, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
         return Response(serializer.data)
