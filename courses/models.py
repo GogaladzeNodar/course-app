@@ -1,5 +1,7 @@
 from django.db import models
-from django.conf import settings
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class Course(models.Model):
@@ -25,14 +27,14 @@ class Course(models.Model):
     )
 
     teachers = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
+        User,
         through="CourseTeacher",
         related_name="taught_courses",
         through_fields=("course", "teacher"),
     )
 
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.SET_NULL,
         null=True,
         related_name="created_courses",
@@ -62,12 +64,12 @@ class CourseTeacher(models.Model):
     course = models.ForeignKey(
         "Course", on_delete=models.CASCADE, related_name="course_teachers"
     )
-    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE)
     role = models.CharField(
         max_length=50, choices=Role.choices, default=Role.CO_TEACHER
     )
     added_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.SET_NULL,
         null=True,
         related_name="added_teachers",
@@ -100,7 +102,7 @@ class Enrollment(models.Model):
     )
 
     student = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name="enrolled_courses",
     )
@@ -110,7 +112,7 @@ class Enrollment(models.Model):
     )
     is_active = models.BooleanField(default=True)
     added_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.SET_NULL,
         null=True,
         related_name="enrollments_added",

@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from .models import Course, CourseTeacher, Enrollment
 from users.serializers import UserSerializer
-from django.conf import settings
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class CourseTeacherSerializer(serializers.ModelSerializer):
@@ -62,16 +64,16 @@ class CourseTeacherCreateSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         try:
-            user = settings.AUTH_USER_MODEL.objects.get(email=value)
-            if user.role != settings.AUTH_USER_MODEL.Role.TEACHER:
+            user = User.objects.get(email=value)
+            if user.role != User.Role.TEACHER:
                 raise serializers.ValidationError("User is not a teacher.")
-        except settings.AUTH_USER_MODEL.DoesNotExist:
+        except User.DoesNotExist:
             raise serializers.ValidationError("User does not exist with this email.")
         return value
 
     def create(self, validated_data):
         email = validated_data.pop("email")
-        teacher_user = settings.AUTH_USER_MODEL.objects.get(email=email)
+        teacher_user = User.objects.get(email=email)
         request_user = self.context.get("request").user
         course = self.context.get("course")
 
@@ -105,7 +107,7 @@ class EnrollmentCreateSerializer(serializers.Serializer):
         course = self.context.get("course")
 
         # if only students can enroll, uncomment the following lines, but, let's say teacher can enroll also
-        # if request_user.role != settings.AUTH_USER_MODEL.Role.STUDENT:
+        # if request_user.role != User.Role.STUDENT:
         #     raise serializers.ValidationError("Only students can enroll in courses.")
 
         if Enrollment.objects.filter(course=course, student=request_user).exists():
