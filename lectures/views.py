@@ -62,3 +62,21 @@ class LectureViewSet(viewsets.ModelViewSet):
         lecture.save()
         serializer = self.get_serializer(lecture)
         return Response(serializer.data)
+
+
+class HomeworkAssignmentViewSet(viewsets.ModelViewSet):
+    serializer_class = HomeworkAssignmentSerializer
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            self.permission_classes = [IsEnrolledStudentOrCourseTeacher]
+        else:
+            self.permission_classes = [IsCourseTeacher]
+        return super().get_permissions()
+
+    def get_queryset(self):
+        lecture_pk = self.kwargs.get("lecture_pk")
+        if not lecture_pk:
+            return HomeworkAssignment.objects.none()
+
+        return HomeworkAssignment.objects.filter(lecture_id=lecture_pk)
