@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from courses.models import Course, HomeworkAssignment
+from lectures.models import HomeworkAssignment
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 User = get_user_model()
@@ -14,12 +14,13 @@ class Submission(models.Model):
         RESUBMITTED = "RESUBMITTED", "Resubmitted"
         LATE = "LATE", "Late"
 
-    assignement = models.ForeignKey(
+    assignment = models.ForeignKey(
         HomeworkAssignment, on_delete=models.CASCADE, related_name="submissions"
     )
     student = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="submissions"
     )
+    submission_number = models.PositiveIntegerField(default=1)
     text = models.TextField(blank=True, null=True)
     status = models.CharField(
         max_length=20,
@@ -33,7 +34,11 @@ class Submission(models.Model):
         verbose_name = "submission"
         verbose_name_plural = "submissions"
         ordering = ["-submitted_at"]
-        unique_together = ("assignement", "student")
+        unique_together = (
+            "assignment",
+            "student",
+            "submission_number",
+        )  # to allow multiple submissions if enabled
         indexes = [
             models.Index(fields=["assignment", "student"]),
             models.Index(fields=["student", "submitted_at"]),
@@ -56,6 +61,18 @@ class Submission(models.Model):
                     "You cannot submit more than once for this assignment."
                 )
         super().clean()
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            last = (
+                Submission.objects.filter(
+                    assignement=self.assignement, student=self.student
+                )
+                .order_by("-submission_number")
+                .first()
+            )
+            self.submission_number = (last.submission_number + 1) if last else 1
+        super().save(*args, **kwargs)
 
 
 class SubmissionAttachment(models.Model):
