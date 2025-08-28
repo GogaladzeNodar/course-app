@@ -54,3 +54,30 @@ class IsEnrolledStudentOrCourseTeacher(permissions.BasePermission):
             return False
 
         return self._check_permission(request.user, course)
+
+
+class IsSubmissionOwnerOrCourseTeacher(permissions.BasePermission):
+    message = "You do not have permission to view or modify this submission."
+
+    def has_object_permission(self, request, view, obj):
+
+        if (
+            request.method in permissions.SAFE_METHODS
+        ):  # SAFE_METHODS = ('GET', 'HEAD', 'OPTIONS')
+            is_course_teacher = CourseTeacher.objects.filter(
+                course=obj.assignment.lecture.course, teacher=request.user
+            ).exists()
+            is_submission_owner = obj.student == request.user
+            return is_course_teacher or is_submission_owner
+
+        # Allow full access to submission owner
+        return obj.student == request.user
+
+
+class IsCommentAuthor(permissions.BasePermission):
+    """
+    Allows access only to the author of the comment.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        return obj.author == request.user
