@@ -95,3 +95,34 @@ Student Access: Students can view lectures and assignments for courses in which 
 
 
 
+### submissions - app
+manage submissions for assignements
+
+## Key Features
+
+Submission Management: Students can submit their assignments, update them before the deadline, and delete them if needed. The system can handle single or multiple submissions based on the allow_multiple_submissions flag.
+
+Role-Based Access: The API strictly enforces permissions to ensure security:
+
+Students can only view and manage their own submissions and grades.
+
+Teachers can view all submissions for their courses and are the only ones who can create or modify a grade.
+
+Grading System: Teachers can grade submitted assignments, with the ability to update a grade if needed.
+
+Feedback & Communication: The system allows for comments to be added to a grade, enabling communication between the teacher and the student about the assessment.
+
+### submissions Endpoints
+
+| Endpoint                                           | Method | Description                                       | Permissions                          |
+|----------------------------------------------------|--------|---------------------------------------------------|--------------------------------------|
+| /submissions/                                      | GET    | Retrieve a list of submissions for a specific assignment. | IsCourseTeacher                      |
+| /submissions/                                      | POST   | Submit a homework assignment.                    | IsStudent & IsEnrolledStudent        |
+| /submissions/{id}/                                 | GET    | Retrieve details of a specific submission.        | IsSubmissionOwnerOrCourseTeacher     |
+| /submissions/{id}/                                 | PATCH  | Update a submitted assignment.                   | IsSubmissionOwnerOrCourseTeacher     |
+| /submissions/{id}/                                 | DELETE | Delete a submitted assignment.                   | IsSubmissionOwnerOrCourseTeacher     |
+| /submissions/mine/                                 | GET    | Retrieve a list of all submissions made by the current user. | IsAuthenticated                      |
+| /submissions/{submission_id}/grades/               | GET    | Retrieve the grade for a specific submission.    | IsEnrolledStudentOrCourseTeacher     |
+| /submissions/{submission_id}/grades/               | POST   | Create or update a grade for a specific submission. | IsCourseTeacher                      |
+| /submissions/{submission_id}/grades/{grade_id}/comments/ | GET    | Retrieve comments for a specific grade.          | IsEnrolledStudentOrCourseTeacher     |
+| /submissions/{submission_id}/grades/{grade_id}/comments/ | POST   | Add a comment to a grade.                        | IsAuthenticated                      |

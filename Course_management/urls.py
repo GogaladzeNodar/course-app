@@ -33,6 +33,8 @@ urlpatterns = [
     path("api/auth/token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("api/auth/", include("users.urls")),
     path("api/", include(router.urls)),
+    path("api/", include("lectures.urls")),
+    path("api/", include("submissions.urls")),
 ]
 
 if settings.DEBUG:
