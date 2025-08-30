@@ -19,11 +19,18 @@ from django.urls import path, include
 from django.shortcuts import redirect
 from django.conf import settings
 from django.conf.urls.static import static
-from common.router.routers import router
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView,
+)
+from common.router.routers import (
+    router,
+    lectures_router,
+    assignments_router,
+    submissions_router,
+    grades_router,
+    comments_router
 )
 
 urlpatterns = [
@@ -33,8 +40,11 @@ urlpatterns = [
     path("api/auth/token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("api/auth/", include("users.urls")),
     path("api/", include(router.urls)),
-    path("api/", include("lectures.urls")),
-    path("api/", include("submissions.urls")),
+    path("api/", include(lectures_router.urls)),
+    path("api/", include(assignments_router.urls)),
+    path("api/", include(submissions_router.urls)),
+    path("api/", include(grades_router.urls)),
+    path("api/", include(comments_router.urls)),
 ]
 
 if settings.DEBUG:
