@@ -26,6 +26,7 @@
 	],
 	"remoteUser": "root",
 	"mounts": [
+		"source=${localWorkspaceFolder},target=/app,type=bind",
 		"source=${localWorkspaceFolder}/staticfiles,target=/app/staticfiles,type=bind",
 		"source=${localWorkspaceFolder}/media,target=/app/media,type=bind"
 	]
