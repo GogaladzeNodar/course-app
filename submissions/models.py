@@ -1,10 +1,32 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from common.field_validators.advanced_file import AdvancedFileValidator
 from lectures.models import HomeworkAssignment
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 User = get_user_model()
+
+advanced_validator = AdvancedFileValidator(
+    max_size=10 * 1024 * 1024,
+    allowed_types=[
+        "application/zip",
+        "application/pdf",
+        "text/plain",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ],
+    allowed_inner_types=[
+        "application/pdf",
+        "text/plain",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ],
+)
 
 
 class Submission(models.Model):
@@ -80,7 +102,9 @@ class SubmissionAttachment(models.Model):
         Submission, on_delete=models.CASCADE, related_name="attachments"
     )
 
-    file = models.FileField(upload_to="submission_attachments/")
+    file = models.FileField(
+        upload_to="submission_attachments/", validators=[advanced_validator]
+    )
     uploaded_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 

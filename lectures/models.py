@@ -1,9 +1,31 @@
 from django.db import models
+from common.field_validators.advanced_file import AdvancedFileValidator
 from courses.models import Course
 from django.db.models import UniqueConstraint
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
+advanced_validator = AdvancedFileValidator(
+    max_size=10 * 1024 * 1024,
+    allowed_types=[
+        "application/zip",
+        "application/pdf",
+        "text/plain",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ],
+    allowed_inner_types=[
+        "application/pdf",
+        "text/plain",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ],
+)
 
 
 class Lecture(models.Model):
@@ -18,7 +40,10 @@ class Lecture(models.Model):
     topic = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     presentation = models.FileField(
-        upload_to="lectures/presentations/", blank=True, null=True
+        upload_to="lectures/presentations/",
+        blank=True,
+        null=True,
+        validators=[advanced_validator],
     )
     order = models.PositiveIntegerField(default=1)
     is_published = models.BooleanField(default=False)
@@ -55,7 +80,10 @@ class HomeworkAssignment(models.Model):
     due_date = models.DateTimeField(null=True, blank=True)
     max_score = models.PositiveIntegerField(default=100)
     attachment = models.FileField(
-        upload_to="assignments/attachments/", blank=True, null=True
+        upload_to="assignments/attachments/",
+        blank=True,
+        null=True,
+        validators=[advanced_validator],
     )
     allow_multiple_submissions = models.BooleanField(default=True)
     created_by = models.ForeignKey(
