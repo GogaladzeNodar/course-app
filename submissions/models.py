@@ -84,18 +84,6 @@ class Submission(models.Model):
                 )
         super().clean()
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            last = (
-                Submission.objects.filter(
-                    assignement=self.assignement, student=self.student
-                )
-                .order_by("-submission_number")
-                .first()
-            )
-            self.submission_number = (last.submission_number + 1) if last else 1
-        super().save(*args, **kwargs)
-
 
 class SubmissionAttachment(models.Model):
     submission = models.ForeignKey(
@@ -143,24 +131,6 @@ class Grade(models.Model):
 
     def __str__(self):
         return f"Grade for Submission {self.submission.id}"
-
-    def clean(
-        self,
-    ):  # this validation is not vorking in API so we will handle it in serializer
-        # but let it be here for future use in admin panel
-        if self.score is None:
-            self.grade_letter = self.GradeLetter.NA
-        elif self.score >= 90:
-            self.grade_letter = self.GradeLetter.A
-        elif self.score >= 80:
-            self.grade_letter = self.GradeLetter.B
-        elif self.score >= 70:
-            self.grade_letter = self.GradeLetter.C
-        elif self.score >= 60:
-            self.grade_letter = self.GradeLetter.D
-        else:
-            self.grade_letter = self.GradeLetter.F
-        super().clean()
 
 
 class GradeComment(models.Model):

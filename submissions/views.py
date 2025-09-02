@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from .models import Submission, SubmissionAttachment, Grade, GradeComment
 from lectures.models import HomeworkAssignment
+from .services import SubmissionService, GradeService
 from .serializers import (
     SubmissionSerializer,
     SubmissionAttachmentSerializer,
@@ -34,10 +35,15 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             ]
         elif self.action in ["list"]:
             self.permission_classes = [IsAuthenticated, IsCourseTeacher]
-        elif self.action in ["update", "partial_update", "destroy"]:
+        elif self.action in ["destroy"]:
             self.permission_classes = [
                 IsAuthenticated,
                 IsSubmissionOwnerOrCourseTeacher,
+            ]
+        elif self.action in ["update", "partial_update"]:
+            self.permission_classes = [
+                IsAuthenticated,
+                IsCourseTeacher,
             ]
         return super().get_permissions()
 
@@ -57,18 +63,32 @@ class SubmissionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         assignment_id = self.kwargs.get("assignment_pk")
         assignment = get_object_or_404(HomeworkAssignment, pk=assignment_id)
-        serializer.save(student=self.request.user, assignment=assignment)
-
-    @action(detail=False, methods=["get"], url_path="mine")
-    def list_mine(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        submission = SubmissionService.create_submission(
+            assignment=assignment,
+            student=self.request.user,
+            text=serializer.validated_data.get("text", ""),
+        )
+        serializer.instance = submission
 
 
 class GradeViewSet(viewsets.ModelViewSet):
     queryset = Grade.objects.all()
     serializer_class = GradeSerializer
+
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            self.permission_classes = [IsAuthenticated, IsTeacher, IsCourseTeacher]
+        elif self.action in ["retrieve"]:
+            self.permission_classes = [
+                IsAuthenticated,
+                IsSubmissionOwnerOrCourseTeacher,
+            ]
+        elif self.action in ["list"]:
+            self.permission_classes = [
+                IsAuthenticated,
+                IsSubmissionOwnerOrCourseTeacher,
+            ]
+        return super().get_permissions()
 
     def get_queryset(self):
         user = self.request.user
@@ -95,11 +115,24 @@ class GradeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         submission_id = self.kwargs.get("submission_pk")
         submission = get_object_or_404(Submission, pk=submission_id)
-        try:
-            grade = Grade.objects.get(submission=submission)
-            serializer.update(grade, serializer.validated_data)
-        except Grade.DoesNotExist:
-            serializer.save(graded_by=self.request.user, submission=submission)
+        grade = GradeService.create_or_update_grade(
+            submission=submission,
+            score=serializer.validated_data.get("score"),
+            feedback=serializer.validated_data.get("feedback", ""),
+            graded_by=self.request.user,
+        )
+        serializer.instance = grade
+
+    def perform_update(self, serializer):
+        submission_id = self.kwargs.get("submission_pk")
+        submission = get_object_or_404(Submission, pk=submission_id)
+        grade = GradeService.create_or_update_grade(
+            submission=submission,
+            score=serializer.validated_data.get("score"),
+            feedback=serializer.validated_data.get("feedback", ""),
+            graded_by=self.request.user,
+        )
+        serializer.instance = grade
 
 
 class GradeCommentViewSet(viewsets.ModelViewSet):
