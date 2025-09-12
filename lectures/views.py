@@ -9,6 +9,7 @@ from lectures.serializers import LectureSerializer, HomeworkAssignmentSerializer
 from common.Permissions.student_and_teacher_permissions import (
     IsEnrolledStudentOrCourseTeacher,
 )
+from .services import LectureService
 from common.Permissions.teacherpermissions import IsCourseTeacher
 
 
@@ -62,6 +63,27 @@ class LectureViewSet(viewsets.ModelViewSet):
         lecture.save()
         serializer = self.get_serializer(lecture)
         return Response(serializer.data)
+
+    @action(detail=True, methods=["post"], url_path="reorder")
+    def reorder(self, request, *args, **kwargs):
+        lecture = self.get_object()
+
+        try:
+            new_order = int(request.data.get("new_order"))
+        except (TypeError, ValueError):
+            return Response(
+                {"detail": "new_order must be an integer."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if new_order < 1:
+            return Response(
+                {"detail": "new_order must be greater than 0."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        LectureService.reorder(lecture, new_order)
+        return Response({"detail": "Lecture reordered successfully."})
 
 
 class HomeworkAssignmentViewSet(viewsets.ModelViewSet):

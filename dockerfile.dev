@@ -1,5 +1,5 @@
-# Use the official Python slim image for smaller size
-FROM python:3.13-slim
+# Use the official Python image as a base image
+FROM python:3.13
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -13,9 +13,10 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     git \
-    libmagic1 \
-    libmagic-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Add a build argument to invalidate cache on every build
+ARG CACHEBUST=1
 
 # Copy requirements and install dependencies
 COPY requirements.txt .
@@ -28,4 +29,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the Django server
-CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
