@@ -42,8 +42,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "users",
-    "courses",
-    "lectures",
+    "courses.apps.CoursesConfig",
+    "lectures.apps.LecturesConfig",
     "submissions",
 ]
 

@@ -15,10 +15,6 @@ class LectureSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
-        # as we mentiond, becouse lecture creation is for only api slug generation can be here So far and not in signals
-        # (and at thet time slug is not needed, this will be for SEO task)
-        validated_data["slug"] = slugify(validated_data["title"])
-        # The lecture title is now unique within the course. so slug is unique
         return super().create(validated_data)
 
 
