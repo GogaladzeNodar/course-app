@@ -1,15 +1,39 @@
 services:
   db:
     image: postgres:15
-    restart: always
+    restart: on-failure
+    container_name: postgres_db_course_app
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
+
+  mongo_logging:
+    image: mongo:8.0
+    restart: on-failure
+    container_name: mongo_logging_course_app
+    volumes:
+      - mongo_logging_data:/data/db
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   django:
     build:
@@ -17,6 +41,7 @@ services:
       dockerfile: dockerfile.dev
       args:
         CACHEBUST: ${BUILD_DATE}
+    container_name: django_course_app
 
     volumes:
       - .:/app
@@ -25,8 +50,12 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      mongo_logging:
+        condition: service_healthy
     environment:
+      PYTHONPATH: /app
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
@@ -34,6 +63,8 @@ services:
       DB_PORT: 5432
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DJANGO_DEBUG: ${DJANGO_DEBUG}
+      MONGO_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo_logging:27017/${MONGO_DB_NAME}?authSource=admin
 
 volumes:
   postgres_data:
+  mongo_logging_data:

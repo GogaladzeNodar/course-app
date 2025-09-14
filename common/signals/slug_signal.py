@@ -1,6 +1,6 @@
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from utils.slugify import generate_unique_slug
+from common.utils.slugify import generate_unique_slug
 
 
 def auto_generate_slug(model, source_field, slug_field="slug"):
