@@ -161,3 +161,49 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 
 AUTH_USER_MODEL = "users.User"
+
+import logging
+from log4mongo.handlers import MongoHandler
+
+MONGO_LOGGING = {
+    "HOST": os.getenv("MONGO_HOST", "mongo_logging"),
+    "PORT": int(os.getenv("MONGO_PORT", 27017)),
+    "DB_NAME": os.getenv("MONGO_DB_NAME", "logs"),
+    "USER": os.getenv("MONGO_LOG_USER", "logger"),
+    "PASSWORD": os.getenv("MONGO_LOG_PASSWORD", "logger_pass"),
+    "COLLECTION": "app_logs",
+}
+
+class DictMongoFormatter(logging.Formatter):
+    def format(self, record):
+        record_dict = record.__dict__.copy()
+        record_dict['message'] = super().format(record)
+        return record_dict
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {"format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}", "style": "{"},
+        "mongo": {"()": DictMongoFormatter, "fmt": "{levelname} {message}"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "verbose"},
+        "mongo": {
+            "level": "INFO",
+            "class": "log4mongo.handlers.MongoHandler",
+            "host": MONGO_LOGGING["HOST"],
+            "port": MONGO_LOGGING["PORT"],
+            "username": MONGO_LOGGING["USER"],
+            "password": MONGO_LOGGING["PASSWORD"],
+            "authSource": MONGO_LOGGING["DB_NAME"],
+            "database_name": MONGO_LOGGING["DB_NAME"],
+            "collection": MONGO_LOGGING["COLLECTION"],
+            "formatter": "mongo",
+        },
+    },
+    "loggers": {
+        "django": {"handlers": ["console", "mongo"], "level": "INFO", "propagate": True},
+        "Course_management": {"handlers": ["console", "mongo"], "level": "DEBUG", "propagate": True},
+    },
+}
