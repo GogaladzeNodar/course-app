@@ -33,7 +33,9 @@ def mongo_sink(message):
         "user_id": record["extra"].get("user_id"),
         "request_id": record["extra"].get("request_id"),
         "module": record["module"],
-        "function": record["function"],
+        "view": record["extra"].get("view"),
+        "function": record["extra"].get("function"),
+        "duration_ms": record["extra"].get("duration_ms"), 
         "time": record["time"].isoformat(),
     }
     collection.insert_one(doc)
