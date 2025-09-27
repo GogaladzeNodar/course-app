@@ -20,11 +20,11 @@ from common.Permissions.teacherpermissions import (
 from django.db import IntegrityError
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.contrib.auth import get_user_model
-
+from common.logging.view_part_logging.baseapiview import BaseViewSet
 User = get_user_model()
 
 
-class CourseViewSet(viewsets.ModelViewSet):
+class CourseViewSet(BaseViewSet, viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 

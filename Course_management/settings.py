@@ -73,7 +73,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "common.middleware.request_logging.LoguruRequestMiddleware",
+    "common.logging.middleware.request_logging.LoguruRequestMiddleware",
 ]
 
 ROOT_URLCONF = "Course_management.urls"

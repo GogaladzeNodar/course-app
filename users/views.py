@@ -1,10 +1,11 @@
 from rest_framework.views import APIView
+from common.logging.view_part_logging.baseapiview import BaseAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import UserRegistrationSerializer
 
 
-class UserRegistrationView(APIView):
+class UserRegistrationView(BaseAPIView):
     serializer_class = UserRegistrationSerializer
     permission_classes = []
 

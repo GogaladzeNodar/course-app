@@ -20,10 +20,11 @@ from django.shortcuts import redirect
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
+    #TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView,
 )
+from common.logging.view_part_logging.baseapiview import CustomTokenObtainPairView
 from common.router.routers import (
     router,
     lectures_router,
@@ -35,7 +36,7 @@ from common.router.routers import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/auth/login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/auth/login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/auth/token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("api/auth/", include("users.urls")),

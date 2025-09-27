@@ -40,11 +40,14 @@ def mongo_sink(message):
         "response_size": record["extra"].get("response_size"),
         "content_type": record["extra"].get("content_type"),
         "error": record["extra"].get("error"),
+        "error_type": record["extra"].get("error_type"),
+        "stacktrace": record["extra"].get("stacktrace"),
         "user_id": user.get("id"),
         "client_info": record["extra"].get("client_info"),
         "db_query_metrics": record["extra"].get("db_query_metrics"),
         "username": user.get("username"),
         "is_authenticated": user.get("is_authenticated"),
+        "input": record["extra"].get("payload", {}),
         "time": record["time"].isoformat(),
     }
     collection.insert_one(doc)
